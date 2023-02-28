@@ -191,6 +191,8 @@ en:
         otp_attempt: Two-factor code
         password: Password
         phrase: Keyword or phrase
+        wallet_address: Wallet public address
+        signature: Signature
         setting_advanced_layout: Enable advanced web interface
         setting_aggregate_reblogs: Group boosts in timelines
         setting_always_send_emails: Always send e-mail notifications

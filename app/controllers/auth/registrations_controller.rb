@@ -24,6 +24,15 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     super(&:build_invite_request)
   end
 
+  def create
+    super do |resource|
+      if resource.persisted? && wallet_address && (wallet = Wallet.find_by(address: wallet_address))
+        wallet.user_id = resource.id
+        wallet.save
+      end
+    end
+  end
+
   def destroy
     not_found
   end
@@ -53,6 +62,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     resource.build_account if resource.account.nil?
   end
 
+  # Devise方法 永久修改signup参数 账户属性将包含用户名与显示名数组
   def configure_sign_up_params
     devise_parameter_sanitizer.permit(:sign_up) do |user_params|
       user_params.permit({ account_attributes: [:username, :display_name], invite_request_attributes: [:text] }, :email, :password, :password_confirmation, :invite_code, :agreement, :website, :confirm_password)
@@ -106,6 +116,10 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   private
+
+  def wallet_address
+    warden.session[:wallet_address]
+  end
 
   def set_instance_presenter
     @instance_presenter = InstancePresenter.new

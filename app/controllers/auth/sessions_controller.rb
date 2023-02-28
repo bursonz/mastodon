@@ -3,7 +3,7 @@
 class Auth::SessionsController < Devise::SessionsController
   layout 'auth'
 
-  skip_before_action :require_no_authentication, only: [:create]
+  skip_before_action :require_no_authentication, only: [:create, :wallet_login]
   skip_before_action :require_functional!
   skip_before_action :update_user_sign_in
 
@@ -31,6 +31,20 @@ class Auth::SessionsController < Devise::SessionsController
 
       on_authentication_success(resource, :password) unless @on_authentication_success_called
     end
+  end
+
+  def wallet_login
+    self.resource = warden.authenticate!(:wallet_authenticatable)
+
+    if resource.present?
+      set_flash_message!(:notice, :signed_in)
+      on_authentication_success(resource, :password) unless @on_authentication_success_called
+
+    elsif session[:wallet_address]
+      return redirect_to new_user_registration_path
+    end
+
+    respond_with resource, location: after_sign_in_path_for(resource)
   end
 
   def destroy

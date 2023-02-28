@@ -10,6 +10,9 @@ zh-CN:
         email: 电子邮箱地址
         locale: 本地化
         password: 密码
+        wallet_address: 钱包地址
+        signature: 签名
+        nonce: 用于签名的值
       user/account:
         username: 用户名
       user/invite_request:

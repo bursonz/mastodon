@@ -191,6 +191,8 @@ zh-CN:
         otp_attempt: 双重认证代码
         password: 密码
         phrase: 关键词
+        wallet_address: 钱包地址
+        signature: 签名
         setting_advanced_layout: 启用高级 Web 界面
         setting_aggregate_reblogs: 在时间轴中合并转嘟
         setting_always_send_emails: 总是发送电子邮件通知

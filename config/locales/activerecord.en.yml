@@ -10,6 +10,9 @@ en:
         email: E-mail address
         locale: Locale
         password: Password
+        wallet_address: Wallet public address
+        signature: Signature
+        nonce: Nonce for signing
       user/account:
         username: Username
       user/invite_request:

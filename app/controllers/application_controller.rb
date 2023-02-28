@@ -33,6 +33,7 @@ class ApplicationController < ActionController::Base
     service_unavailable
   end
 
+  before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :store_current_location, except: :raise_not_found, unless: :devise_controller?
   before_action :require_functional!, if: :user_signed_in?
 
@@ -65,6 +66,12 @@ class ApplicationController < ActionController::Base
   end
 
   protected
+
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:sign_up) do |user_params|
+      user_params.permit(:wallet_address, :signature)
+    end
+  end
 
   def truthy_param?(key)
     ActiveModel::Type::Boolean.new.cast(params[key])

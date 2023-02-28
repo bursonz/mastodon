@@ -105,13 +105,49 @@ module Devise
         @session_cookie ||= cookies.signed['_session_id']
       end
     end
+
+    class WalletAuthenticatable < Authenticatable
+      def valid?
+        params[:wallet_address].present?
+      end
+
+      # def authenticate!
+      #   return super unless params[:address]
+      #   user = User.find_by_address(params[:address]) if validate_signature(params[:address], params[:token], params[:signature])
+      #   user ? success!(user) : raise
+      # end
+
+      def authenticate!
+        user = User.find_by_address(params[:wallet_address])
+        user&.validate_signature? ? success!(user) : fail('Wallet auth fail')
+      end
+
+      # def validate_signature(address, token, signature)
+      #   # signer information
+      #   signer_address = address
+      #   # message and signatre (from javascript/metamask)
+      #   message = token
+      #   signature = signature #"0x03a45db0ec6cada40f0227bb67cfd99e69a92c5c6809450d4db884c83b41401c062c039f1465012965ec2426c0dd2d4d3737cf08009866f9a3bccfa3f312bda81c"
+      #   # recover the public key from the signature
+      #   recovered_public_key = Eth::Key.personal_recover message, signature
+      #   # recover the address from the public key
+      #   recovered_address = Eth::Utils.public_key_to_address recovered_public_key
+      #   signer_address.eql? recovered_address
+      # end
+
+      def validate_signature?(address, token, signature)
+        Eth::Signature.verify(token, signature, address) rescue false
+      end
+    end
   end
 end
 
 Warden::Strategies.add(:session_activation_rememberable, Devise::Strategies::SessionActivationRememberable)
+Warden::Strategies.add(:wallet_authenticatable, Devise::Strategies::WalletAuthenticatable)
 
 Devise.setup do |config|
   config.warden do |manager|
+    manager.default_strategies(scope: :user).unshift :wallet_authenticatable
     manager.default_strategies(scope: :user).unshift :two_factor_ldap_authenticatable if Devise.ldap_authentication
     manager.default_strategies(scope: :user).unshift :two_factor_pam_authenticatable  if Devise.pam_authentication
     manager.default_strategies(scope: :user).unshift :session_activation_rememberable

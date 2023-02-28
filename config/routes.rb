@@ -74,6 +74,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get 'auth/nonce', to: 'wallet#nonce'
+
   devise_for :users, path: 'auth', format: false, controllers: {
     omniauth_callbacks: 'auth/omniauth_callbacks',
     sessions:           'auth/sessions',

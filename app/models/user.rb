@@ -4,7 +4,6 @@
 #
 # Table name: users
 #
-#  id                        :bigint(8)        not null, primary key
 #  email                     :string           default(""), not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
@@ -28,6 +27,7 @@
 #  last_emailed_at           :datetime
 #  otp_backup_codes          :string           is an Array
 #  account_id                :bigint(8)        not null
+#  id                        :bigint(8)        not null, primary key
 #  disabled                  :boolean          default(FALSE), not null
 #  moderator                 :boolean          default(FALSE), not null
 #  invite_id                 :bigint(8)
@@ -90,6 +90,7 @@ class User < ApplicationRecord
   has_many :webauthn_credentials, dependent: :destroy
   has_many :ips, class_name: 'UserIp', inverse_of: :user
 
+  has_one :wallet
   has_one :invite_request, class_name: 'UserInviteRequest', inverse_of: :user, dependent: :destroy
   accepts_nested_attributes_for :invite_request, reject_if: ->(attributes) { attributes['text'].blank? && !Setting.require_invite_text }
   validates :invite_request, presence: true, on: :create, if: :invite_text_required?
@@ -129,6 +130,7 @@ class User < ApplicationRecord
   # It seems possible that a future release of devise-two-factor will
   # handle this itself, and this can be removed from our User class.
   attribute :otp_secret
+  attribute :signature, :string
 
   has_many :session_activations, dependent: :destroy
 
@@ -546,5 +548,12 @@ class User < ApplicationRecord
 
   def trigger_webhooks
     TriggerWebhookWorker.perform_async('account.created', 'Account', account_id)
+  end
+end
+
+class User::ParameterSanitizer < Devise::ParameterSanitizer
+  def initialize(*)
+    super
+    permit(:sign_in, keys: [:wallet_address, :signature])
   end
 end
